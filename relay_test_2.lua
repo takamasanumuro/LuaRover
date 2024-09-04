@@ -1,10 +1,9 @@
 --Toggle relay on Pixhawk
 
-
-local relay_right_pin_1 = 2
-local relay_right_pin_2 = 3
-local relay_left_pin_1 = 4
-local relay_left_pin_2 = 5
+local relay_right_pin_1 = 2 -- Pin 52
+local relay_right_pin_2 = 3 -- Pin 53
+local relay_left_pin_1 = 4 -- Pin 54
+local relay_left_pin_2 = 5 -- Pin 55
 
 local should_go_forward = true
 
@@ -13,23 +12,19 @@ function update()
     gcs:send_text(0, "[LUA]")
 
     if should_go_forward then
-        --Forward7
-
-        relay:on(2)
-        relay:off(3)
-        relay:off(5)
-        relay:on(4)
+        --Forward
+        relay:on(relay_right_pin_1)
+        relay:off(relay_right_pin_2)
+        relay:on(relay_left_pin_1)
+        relay:off(relay_left_pin_2)
 
         gcs:send_text(0, "FORWARD")
     else
         --Backward
-
-        relay:off(4)
-        relay:on(5)
-
-        
-        relay:on(3)
-        relay:off(2)
+        relay:off(relay_left_pin_1)
+        relay:on(relay_left_pin_2)
+        relay:off(relay_right_pin_1)
+        relay:on(relay_right_pin_2)
         gcs:send_text(0, "BACK")
 
     end
