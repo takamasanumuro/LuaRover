@@ -13,10 +13,10 @@ function update()
 
     if should_go_forward then
         --Forward
-        relay:on(relay_right_pin_1)
-        relay:off(relay_right_pin_2)
         relay:on(relay_left_pin_1)
         relay:off(relay_left_pin_2)
+        relay:on(relay_right_pin_1)
+        relay:off(relay_right_pin_2)
 
         gcs:send_text(0, "FORWARD")
     else
@@ -30,7 +30,7 @@ function update()
     end
 
     should_go_forward = not should_go_forward
-    return update, 8000
+    return update, 5000
 end
 
 gcs:send_text(0, "[LUA] Relay Test")
