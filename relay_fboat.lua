@@ -14,7 +14,7 @@ local relay_pin_1 = 4 -- Pin 54
 local relay_pin_2 = 5 -- Pin 55
 
 local throttle_trim = 1500 -- Center position of the throttle
-local throttle_deadzone = 50 -- Motor should be idle within this range
+local throttle_deadzone = 100 -- Motor should be idle within this range
 local throttle_low_threshold = throttle_trim - throttle_deadzone
 local throttle_high_threshold = throttle_trim + throttle_deadzone
 
@@ -52,18 +52,22 @@ function update()
 
     local timeout = 20
 
-    if throttle_pwm > 1500 then
-        local throttle_new_pwm_high = uint32_t(map(throttle_pwm, 1500, 2000, 1000, 2000))
+    if throttle_pwm > (throttle_trim + throttle_deadzone) then
+        local throttle_new_pwm_high = uint32_t(map(throttle_pwm, (throttle_trim + throttle_deadzone), 2000, 1000, 2000))
         SRV_Channels:set_output_pwm_chan_timeout(scripted_throttle_channel, throttle_new_pwm_high:toint(), timeout)
-        relay:off(relay_pin_1)
-        relay:off(relay_pin_2)
-        gcs:send_text(0, "[LUA] Relay Off")
-    else 
-        local throttle_new_pwm_low = uint32_t(map(throttle_pwm, 1000, 1500, 2000, 1000))
-        SRV_Channels:set_output_pwm_chan_timeout(scripted_throttle_channel, throttle_new_pwm_low:toint(), timeout)
-        relay:on(relay_pin_1)
+        relay:on(relay_pin_1) -- Inverted logic due to opto-isolation
         relay:on(relay_pin_2)
+        gcs:send_text(0, "[LUA] Relay Off")
+    elseif throttle_pwm < (throttle_trim - throttle_deadzone) then
+        local throttle_new_pwm_low = uint32_t(map(throttle_pwm, 1000, (throttle_trim - throttle_deadzone), 2000, 1000))
+        SRV_Channels:set_output_pwm_chan_timeout(scripted_throttle_channel, throttle_new_pwm_low:toint(), timeout)
+        relay:off(relay_pin_1) -- Inverted logic due to opto-isolation
+        relay:off(relay_pin_2)
         gcs:send_text(0, "[LUA] Relay On")
+    else
+        --Neutral throttle
+        SRV_Channels:set_output_pwm_chan_timeout(scripted_throttle_channel, 1000, timeout)
+
     end
 
     return update, call_interval_ms
